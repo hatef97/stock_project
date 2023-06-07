@@ -1,0 +1,5 @@
+SET stock1 '{"id": 1, "price": [1000, ""], "time": ["09:00", "09:01"], "performance": 0}'
+SET stock2 '{"id": 2, "price": [450, ""], "time": ["09:00", "09:01"], "performance": 0}'
+SET stock3 '{"id": 3, "price": [1682, ""], "time": ["09:00", "09:01"], "performance": 0}'
+SET user1 '{"id": 1, "credit": 150000000}'
+SET user2 '{"id": 2, "credit": 6000000000}'
