@@ -1,25 +1,33 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-import redis
+from django_redis import get_redis_connection
+from .serializers import BuyStockSerializer
 
 
 class BuyStock(APIView):
     def post(self, request):
-        user = request.data.get('user')
-        stock_name = request.data.get('stockname')
-        quantity = request.data.get('quantity')
+        serializer = BuyStockSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        user = validated_data['user']
+        stockname = validated_data['stockname']
+        quantity = validated_data['quantity']
 
-        # Connect to Redis
-        redis_host = 'localhost'
-        redis_port = 6379
-        redis_client = redis.Redis(host=redis_host, port=redis_port)
+        # Connect to Redis database
+        redis_conn = get_redis_connection()
 
-        # Check user credit in Redis
-        user_credit = redis_client.hget(user, 'credit')
+        # Get user data from Redis
+        user_data = redis_conn.hgetall(user)
 
-        if user_credit and int(user_credit) >= quantity:
-            response_data = {'status': 'Accept'}
+        if not user_data:
+            return Response({'message': 'User not found'}, status=400)
+
+        user_credit = float(user_data.get('credit', 0))
+        stock_price = float(redis_conn.get(stockname))
+
+        required_credit = stock_price * quantity
+
+        if user_credit >= required_credit:
+            return Response({'message': 'Accept'}, status=200)
         else:
-            response_data = {'status': 'Deny'}
-
-        return Response(response_data)
+            return Response({'message': 'Deny'}, status=200)
